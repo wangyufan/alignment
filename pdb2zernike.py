@@ -105,8 +105,8 @@ def zernike_moments(pdbfile, nmax=20, np=50, fix_dx=False, np_on_grid=20, shift=
   default_dx = 0.7
   uniform = True
 
-  #pdbi = pdb.hierarchy.input(file_name=pdbfile)
-  pdbi = iotbx.pdb.hierarchy.input(pdb_string='''ATOM      1  N   ASP A  37      10.710  14.456   9.568  1.00 15.78           N''')
+  pdbi = pdb.hierarchy.input(file_name=pdbfile)
+  # pdbi = iotbx.pdb.hierarchy.input(pdb_string='''ATOM      1  N   ASP A  37      10.710  14.456   9.568  1.00 15.78           N''')
   if(len( pdbi.hierarchy.models() ) == 0):
     return None,None,None
 
@@ -132,10 +132,10 @@ def zernike_moments(pdbfile, nmax=20, np=50, fix_dx=False, np_on_grid=20, shift=
   density=flex.double(xyz.size(),1.0)
   voxel_obj = math.sphere_voxel(np,splat_range,uniform,fix_dx,external_rmax, default_dx, fraction,xyz,density)
   np = voxel_obj.np()
-  print "*********************voxel_obj.rmax():   ",voxel_obj.rmax()
+  # print "*********************voxel_obj.rmax():   ",voxel_obj.rmax()
   rmax=voxel_obj.rmax()/fraction
-  print "*********************fraction:   ",fraction
-  print "*********************rmax=voxel_obj.rmax()/fraction:   ",rmax
+  # print "*********************fraction:   ",fraction
+  # print "*********************rmax=voxel_obj.rmax()/fraction:   ",rmax
 
   #print base, "RMAX: ", voxel_obj.rmax()
 
@@ -185,13 +185,13 @@ def zernike_moments(pdbfile, nmax=20, np=50, fix_dx=False, np_on_grid=20, shift=
 ####### END of Intensity Calculation ###########
 
   if(buildmap):
-    print "grid setting up..."
+    print("grid setting up...")
     zga = math.zernike_grid(np_on_grid, nmax, False)
-    print "grid setting up...Done"
+    print("grid setting up...Done")
     zga.load_coefs(moments.nlm(), moments.coefs() )
-    print "start reconstruction"
+    print("start reconstruction")
     map=flex.abs(zga.f() )
-    print "finished reconstruction"
+    print("finished reconstruction")
     xplor_map_type( map, np_on_grid, rmax, file_name=base+'.xplor')
     ccp4_map_type( map, np_on_grid, rmax, file_name=base+'.ccp4' )
 
@@ -199,11 +199,11 @@ def zernike_moments(pdbfile, nmax=20, np=50, fix_dx=False, np_on_grid=20, shift=
 
 def disp_inv(inva):
   for indx, inv in zip(inva.nl(), inva.coefs() ):
-    print indx, inv
+    print(indx, inv)
 
 def display(moments):
   for indx, mom in zip(moments.nlm(), moments.coefs()):
-    print indx, mom
+    print(indx, mom)
 
 def run(args):
   params = get_input(args, master_params, "zernike", banner, help)

@@ -7,9 +7,11 @@ import multiprocessing
 from multiprocessing import Pool
 import argparse
 import math as xmath
+import numpy as np
 
-def computeCc(process_n):
+def computeCc(process_n, perSizeLeft, perSizeRight, perSize, listlength, filelist, nmax, rmax):
 #compute nlm_cc
+  ccArr = []
   start_line_left = process_n*perSizeLeft
   end_line_left = (process_n + 1)*perSizeLeft
   start_line_right = listlength - (process_n+1)*perSizeRight
@@ -24,16 +26,13 @@ def computeCc(process_n):
   print "process_n, start_left, end_left, start_right, end_right:",process_n, start_line_left, end_line_left, start_line_right, end_line_right
   for i in (range(start_line_left,end_line_left) + range(start_line_right,end_line_right)):
     for j in range(i+1,listlength):      
-      fix_model = model_interface.build_model( filelist[i], "mol2", nmax, rmax )
-      mov_model = model_interface.build_model( filelist[j], "mol2", nmax, rmax )
+      fix_model = model_interface.build_model( filelist[i], "pdb", nmax, rmax )
+      mov_model = model_interface.build_model( filelist[j], "pdb", nmax, rmax )
       fix_nlm_array = fix_model.nlm_array
       mov_nlm_array = mov_model.nlm_array
       align_obj = fft_align.align( fix_nlm_array, mov_nlm_array, nmax=nmax,refine=True)
       cc = align_obj.get_cc()
-      mol2_name_i = os.path.basename(filelist[i])
-      mol2_name_j = os.path.basename(filelist[j])
-      ccArr.append(mol2_name_i +","+ mol2_name_j +","+ str(cc)+"\n")
-      print(mol2_name_i +","+ mol2_name_j +","+ str(cc)+"\n")
+      ccArr.append((i, j, cc))
   return ccArr
 
 def run(args):
@@ -47,22 +46,16 @@ def run(args):
   args = parser.parse_args()
   nmax = args.nmax
   rmax = args.rmax
-  global perSizeLeft, perSizeRight, perSize, listlength, filelist, nmax, rmax
   filepath = args.input
   filelist = []
-  ccArr = []
   # sorted filedir
-  # filedir = sorted(os.listdir(filepath), key=lambda oneFileName: int(oneFileName.split("-")[0]))   #mol2
-  
-  # filedir = sorted(os.listdir(filepath), key=lambda oneFileName:int(oneFileName.split(".")[0].split("_")[1])) #pdb
-
-  filedir = sorted(os.listdir(filepath), key=lambda oneFileName:int(oneFileName.split(".")[0]))
+  files = os.listdir(filepath)
+  pdbs = [f for f in files if f.endswith('pdb')]
+  filedir = sorted(pdbs, key=lambda oneFileName:int(oneFileName.split(".")[0]))
   print filedir
   for filename in filedir:
     filelist.append(os.path.join('%s%s' % (filepath, filename)))
-
   listlength = len(filelist)
-
   targetfile = args.output
   processnum = args.processnum
   perSize = int(xmath.ceil( listlength / processnum))
@@ -70,21 +63,24 @@ def run(args):
   perSizeRight = perSize - perSizeLeft
   print "perSizeRight:",perSizeRight, perSizeLeft, perSize, listlength
 
-  data = computeCc(1)
-  return data
   #cc process pool
-  # tnlm1 = time.time()
-  # pool_cc = multiprocessing.Pool(processes = processnum)
-  # cc_result = pool_cc.map(computeCc, range(processnum))
-  # res = []
-  # for n in range(0,len(cc_result)):
-  #   res += cc_result[n]
+  tnlm1 = time.time()
+  res = []
+  result = []
+  pool = multiprocessing.Pool(processes = processnum)
+  for process_n in range(processnum):
+    result.append(pool.apply_async(computeCc, (process_n, perSizeLeft, perSizeRight, perSize, listlength, filelist, nmax, rmax)))
+  pool.close()
+  pool.join()
+  for item in result:
+    res.extend(item.get())
+  np.save(targetfile, res)
   # with open(targetfile,"w") as f:
   #   for line in res:
-  #     f.write(str(line))
+  #     f.write(str(line)+'\n')
   # f.close()
-  # t2 = time.time()
-  # print "time used", t2 - t1
+  t2 = time.time()
+  print "time used", t2 - t1
 
 if __name__=="__main__":
   args = sys.argv[1:]

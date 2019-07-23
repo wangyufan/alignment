@@ -15,6 +15,7 @@ from libtbx import easy_pickle
 from sastbx.interface import get_input
 # import mol2
 import mol2_v2
+import argparse
 
 
 
@@ -254,6 +255,19 @@ def run(args):
   # shift = params.zernike.shift
   # buildmap = params.zernike.buildmap
   # coef_out = params.zernike.coef_out
+
+  parser = argparse.ArgumentParser()
+  parser.add_argument("--prefix", help="pdb result name, default pdb_db_name=myTestDB, default mol2_db_name = mol2fileName", default="myTestDB", type=str)
+  parser.add_argument("-path", help="db path", type=str)
+  parser.add_argument("--np", help="number of point covering [0,1]", default=50, type=int)
+  parser.add_argument("--fix_dx", help="Whether keeping default dx=0.7A or not", default=True, type=bool)
+  parser.add_argument("--nmax", help="maximum order of zernike expansion", default=20, type=int)
+  parser.add_argument("--qmax", help="maximum q value, for which the intensity to be evaluated", default=0.3, type=float)
+  parser.add_argument("--uniform", help="Whether the uniform density is used", default=True, type=bool)
+  parser.add_argument("--buildmap", help="Whether xplor map will be constructed or not", default=False, type=bool)
+  parser.add_argument("--shift", help="Whether the coordates will be shifted or not", default=False, type=bool)
+  parser.add_argument("--coef_out", help="Whether dump zernike moments to pickle files", default=False,type=bool)
+  args = parser.parse_args()
   nmax= args.nmax
   np = args.np
   uniform = args.uniform

@@ -3,18 +3,17 @@
 import sys
 from PyQt4 import QtGui, QtCore
 import argparse
-import build_db_serial_pdb
-import mol22zernike_mul_iter
+# import crop
+# import peak_cluster
 
 
 
 class MyDialog(QtGui.QDialog):
     def __init__(self):
         super(MyDialog, self).__init__()
-        self.setWindowTitle("Building...")
         self.gridlayout = QtGui.QGridLayout()
         self.label = QtGui.QLabel("start the task!")
-        self.label1 = QtGui.QLabel("waiting for the building...")
+        self.label1 = QtGui.QLabel("waiting for the generation...")
         self.label2 = QtGui.QLabel("task finished!")
         self.cancalButton = QtGui.QPushButton("OK")
         self.gridlayout.addWidget(self.label, 0, 0)
@@ -30,17 +29,15 @@ class MyDialog(QtGui.QDialog):
 class Window(QtGui.QWidget):
     def __init__(self):
         super(Window, self).__init__()
-        self.setWindowTitle("Build Database")
-        self.dataset = QtGui.QLabel('File Path')
+        self.setWindowTitle("Template generation...")
+        self.dataset = QtGui.QLabel('Input')
         self.datasetEdit = QtGui.QLineEdit()
-        self.output = QtGui.QLabel('Database Name')
+        self.output = QtGui.QLabel('Output')
         self.outputEdit = QtGui.QLineEdit()
         self.dbButton = QtGui.QPushButton("Browse")
-        self.fileType = QtGui.QLabel('Target Type')
-        self.fileTypeEdit = QtGui.QComboBox()
-        self.fileTypeEdit.addItem("pdb")  
-        self.fileTypeEdit.addItem("mol2")      
-        self.createDatabaseButton = QtGui.QPushButton("Start")
+        self.fileType = QtGui.QLabel('Frames used') 
+        self.fileTypeEdit = QtGui.QLineEdit()  
+        self.createDatabaseButton = QtGui.QPushButton("OK")
         self.createExitButton = QtGui.QPushButton("Exit")
         gridlayout = QtGui.QGridLayout()
         gridlayout.addWidget(self.dataset, 1, 0)
@@ -90,23 +87,18 @@ class Window(QtGui.QWidget):
         return parser.parse_args()
 
     def OnButton_createDatabase(self):
-        fileTypeEditInput = self.fileTypeEdit.currentText()
+        fileTypeEditInput = self.fileTypeEdit.text()
         dbpath = self.datasetEdit.text()
         output = self.outputEdit.text()
         args = self.process_args()
         pathList = str(dbpath).split('/')
           
-        dialog = MyDialog()
-        if fileTypeEditInput == "pdb":           
-            pathList.pop()
-            args.path = '/'.join(pathList) + '/'
-            args.prefix = str(output)
-            print args
-            build_db_serial_pdb.run(args)
-        elif fileTypeEditInput == "mol2":
-            args.path = str(dbpath)
-            print args
-            mol22zernike_mul_iter.run(args)
+        dialog = MyDialog()       
+        pathList.pop()
+        args.path = '/'.join(pathList) + '/'
+        args.prefix = str(output)
+        print(args)
+        crop.run(args)
         dialog.exec_()
 
 
